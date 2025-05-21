@@ -13,6 +13,7 @@ FROM alpine:latest
 
 WORKDIR /app
 COPY --from=builder /app/app .
+COPY .env .
 
 EXPOSE 1323
 ENTRYPOINT ["./app"]

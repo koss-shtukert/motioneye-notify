@@ -1,18 +1,18 @@
 # Build stage
-FROM golang:1.24 as builder
+FROM golang:1.24-alpine AS builder
 
-WORKDIR /
+RUN apk add --no-cache git
+
+WORKDIR /app
 COPY . .
 
-RUN go mod download
+RUN go build -ldflags="-s -w" -o app .
 
-RUN go build -o app .
+# Final image (alpine)
+FROM alpine:latest
 
-# Final image
-FROM debian:bullseye-slim
-
-WORKDIR /
-COPY --from=builder /app .
+WORKDIR /app
+COPY --from=builder /app/app .
 
 EXPOSE 1323
 ENTRYPOINT ["./app"]

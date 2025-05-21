@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  motioneye-notify:
+    container_name: motioneye-notify
+    build: .
+    ports:
+      - "1323:1323"
+    env_file:
+      - .env
+    restart: unless-stopped

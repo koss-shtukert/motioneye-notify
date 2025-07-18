@@ -70,7 +70,7 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 						l.Err(err).Str("raw", usageStr).Msg("Failed to parse usage percentage")
 					}
 
-					b.SendMessage(formatDiskUsageTable(used, avail, usageStr, percent))
+					b.SendMessage(formatDiskUsageReadable(used, avail, usageStr, percent))
 					return
 				}
 			}
@@ -80,7 +80,7 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 	}
 }
 
-func formatDiskUsageTable(used, avail, usageStr string, percent int) string {
+func formatDiskUsageReadable(used, avail, usageStr string, percent int) string {
 	status := "🟢 OK"
 	if percent >= 90 {
 		status = "🔴 CRITICAL"
@@ -90,11 +90,10 @@ func formatDiskUsageTable(used, avail, usageStr string, percent int) string {
 
 	return fmt.Sprintf(
 		"💾 Disk Usage\n\n"+
-			"+------------+------------+------------+------------+\n"+
-			"|   Used     |   Avail    |   Use%%     |  Status    |\n"+
-			"+------------+------------+------------+------------+\n"+
-			"| %10s | %10s | %10s | %10s |\n"+
-			"+------------+------------+------------+------------+",
+			"📊 Used:    %-8s\n"+
+			"📦 Avail:   %-8s\n"+
+			"📈 Usage:   %-8s\n"+
+			"✅ Status:  %-8s",
 		used, avail, usageStr, status,
 	)
 }

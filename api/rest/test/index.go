@@ -1,4 +1,4 @@
-package callback
+package test
 
 import (
 	"github.com/koss-shtukert/motioneye-notify/bot"
@@ -8,7 +8,7 @@ import (
 )
 
 func Index(e *echo.Echo, cc *config.Config, b *bot.Bot) {
-	e.GET("/callback", func(c echo.Context) (err error) {
+	e.GET("/test", func(c echo.Context) (err error) {
 		cameraName := c.QueryParam("camera_name")
 		cameraId := c.QueryParam("camera_id")
 

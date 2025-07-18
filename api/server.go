@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/koss-shtukert/motioneye-notify/api/rest/callback"
+	"github.com/koss-shtukert/motioneye-notify/api/rest/test"
 	"github.com/koss-shtukert/motioneye-notify/bot"
 	"github.com/koss-shtukert/motioneye-notify/config"
 	"github.com/labstack/echo/v4"
@@ -54,6 +55,7 @@ func CreateServer(l *zerolog.Logger, c *config.Config, b *bot.Bot) *echo.Echo {
 	e.HideBanner = true
 
 	callback.REST(e, c, b)
+	test.REST(e, c, b)
 
 	return e
 }

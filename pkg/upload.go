@@ -20,8 +20,9 @@ func CreateUploader(l *zerolog.Logger) *Upload {
 
 func (u *Upload) UploadFromUrl(url string) ([]byte, error) {
 	resp, err := http.Get(url)
+
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed connect to url")
+		u.logger.Error().Err(err).Msg("Failed connect to url: " + err.Error())
 
 		return nil, err
 	}
@@ -29,7 +30,7 @@ func (u *Upload) UploadFromUrl(url string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		u.logger.Error().Err(err).Msg("Received bad response from url")
+		u.logger.Error().Err(err).Msg("Received bad response from url: " + err.Error())
 
 		return nil, err
 	}
@@ -37,7 +38,7 @@ func (u *Upload) UploadFromUrl(url string) ([]byte, error) {
 	imageBytes, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Error reading image")
+		u.logger.Error().Err(err).Msg("Error reading image: " + err.Error())
 
 		return nil, err
 	}

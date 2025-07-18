@@ -6,7 +6,6 @@ import (
 	"github.com/koss-shtukert/motioneye-notify/pkg"
 	"github.com/rs/zerolog"
 	"strconv"
-	"time"
 )
 
 type Bot struct {
@@ -37,7 +36,7 @@ func (bot *Bot) SendMessage(m string) {
 	msg := tgbotapi.NewMessage(bot.chatId, m)
 
 	if _, err := bot.tgBot.Send(msg); err != nil {
-		bot.logger.Error().Err(err).Msg("Failed to send message")
+		bot.logger.Error().Err(err).Msg("Failed to send message: " + err.Error())
 	}
 }
 
@@ -45,7 +44,7 @@ func (bot *Bot) SendPhoto(c string, u string) {
 	pb, err := bot.upload.UploadFromUrl(u)
 
 	if err != nil {
-		bot.logger.Error().Err(err).Msg("Failed to send photo")
+		bot.logger.Error().Err(err).Msg("Failed to send photo: " + err.Error())
 	}
 
 	if pb != nil {
@@ -56,11 +55,8 @@ func (bot *Bot) SendPhoto(c string, u string) {
 
 		photo.Caption = c
 
-		//2.5 sec
-		time.Sleep(500 * 5 * time.Millisecond)
-
 		if _, err := bot.tgBot.Send(photo); err != nil {
-			bot.logger.Error().Err(err).Msg("Failed to send photo")
+			bot.logger.Error().Err(err).Msg("Failed to send photo: " + err.Error())
 		}
 	}
 }

@@ -10,28 +10,17 @@ import (
 func Index(e *echo.Echo, cc *config.Config, b *bot.Bot) {
 	e.GET("/", func(c echo.Context) (err error) {
 		cameraName := c.QueryParam("camera_name")
+		cameraId := c.QueryParam("camera_id")
 
-		b.SendPhoto(cameraName, getCameraSnapUrl(cameraName, cc))
+		b.SendPhoto(cameraName, getCameraSnapUrl(cameraId, cc))
 
 		return c.String(http.StatusOK, "Ok")
 	})
 }
 
-func getCameraSnapUrl(cn string, c *config.Config) string {
+func getCameraSnapUrl(ci string, c *config.Config) string {
 	Url := "http://" + c.MotioneyeHost + ":" + c.MotioneyePort
-	snapUrl := ""
-
-	switch cn {
-	case "AlxFront":
-		snapUrl = Url + "/picture/1/current/"
-		break
-	case "KossFront":
-		snapUrl = Url + "/picture/2/current/"
-		break
-	case "KossBack":
-		snapUrl = Url + "/picture/3/current/"
-		break
-	}
+	snapUrl := Url + "/picture/" + ci + "/current/"
 
 	return snapUrl
 }

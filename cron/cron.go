@@ -3,13 +3,14 @@ package cron
 import (
 	"bytes"
 	"fmt"
-	"github.com/koss-shtukert/motioneye-notify/config"
 	"os/exec"
 	"strings"
 
 	"github.com/koss-shtukert/motioneye-notify/bot"
+	"github.com/koss-shtukert/motioneye-notify/config"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
+	"strconv"
 )
 
 type Cron struct {
@@ -20,7 +21,7 @@ type Cron struct {
 }
 
 func NewCron(l *zerolog.Logger, cfg *config.Config, b *bot.Bot) *Cron {
-	logger := l.With().Str("type", "bot").Logger()
+	logger := l.With().Str("type", "cron").Logger()
 
 	c := &Cron{
 		cron:   cron.New(),
@@ -29,7 +30,7 @@ func NewCron(l *zerolog.Logger, cfg *config.Config, b *bot.Bot) *Cron {
 		config: cfg,
 	}
 
-	if _, err := c.cron.AddFunc("@hourly", diskUsageJob(&logger, cfg, b)); err != nil {
+	if _, err := c.cron.AddFunc("0 * * * *", diskUsageJob(&logger, cfg, b)); err != nil {
 		logger.Err(err).Msg("Failed to schedule job")
 	}
 
@@ -45,7 +46,9 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 	return func() {
 		logger := l.With().Str("type", "diskUsageJob").Logger()
 
-		cmd := exec.Command("sh", "-c", "df -h /host"+c.CronDiskUsageJobPath)
+		path := "/host" + c.CronDiskUsageJobPath
+		cmd := exec.Command("sh", "-c", "df -h "+path)
+
 		var out, stderr bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &stderr
@@ -56,18 +59,36 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 		}
 
 		for _, line := range strings.Split(out.String(), "\n") {
-			if strings.HasSuffix(line, "/host"+c.CronDiskUsageJobPath) {
+			if strings.HasSuffix(line, path) {
 				fields := strings.Fields(line)
-				if len(fields) >= 5 {
-					usage := fields[4]
-					msg := fmt.Sprintf("Disk usage: %s", usage)
-					logger.Info().Msg(msg)
-					b.SendMessage(msg)
+				if len(fields) < 5 {
+					logger.Warn().Str("line", line).Msg("Not enough fields to parse")
+					continue
+				}
+
+				used := fields[2]
+				avail := fields[3]
+				usedPercent := fields[4]
+
+				percentStr := strings.TrimSuffix(usedPercent, "%")
+				percent, err := strconv.Atoi(percentStr)
+				if err != nil {
+					logger.Warn().Str("value", usedPercent).Msg("Could not parse Use% value")
 					return
 				}
+
+				msg := fmt.Sprintf("Disk Used: %s\nAvail: %s\nUse%%: %d%%", used, avail, percent)
+				logger.Info().
+					Str("path", path).
+					Str("used", used).
+					Str("avail", avail).
+					Int("use_percent", percent).
+					Msg("Parsed disk usage")
+				b.SendMessage(msg)
+				return
 			}
 		}
 
-		logger.Warn().Msgf("Could not parse /host%v usage from df output", c.CronDiskUsageJobPath)
+		logger.Warn().Msgf("Could not parse disk usage for path %s from df output", path)
 	}
 }

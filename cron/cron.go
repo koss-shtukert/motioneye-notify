@@ -88,23 +88,12 @@ func formatDiskUsage(used, avail, usageStr string, percent int) string {
 		status = "🟡 Warning"
 	}
 
-	labels := []string{"Used:", "Avail:", "Usage:", "Status:"}
-	values := []string{used, avail, usageStr, status}
-
-	maxLabelLen := 0
-	for _, label := range labels {
-		if len(label) > maxLabelLen {
-			maxLabelLen = len(label)
-		}
-	}
-
-	lines := make([]string, 0, len(labels))
-	emojis := []string{"📊", "📦", "📈", "✅"}
-
-	for i := range labels {
-		spacePadding := strings.Repeat(" ", maxLabelLen-len(labels[i])+2)
-		lines = append(lines, fmt.Sprintf("%s %s%s%s", emojis[i], labels[i], spacePadding, values[i]))
-	}
-
-	return fmt.Sprintf("💾 Disk Usage\n\n%s", strings.Join(lines, "\n"))
+	return fmt.Sprintf(
+		"💾 Disk Usage\n\n"+
+			"📊 Used:    %s\n"+
+			"📦 Avail:   %s\n"+
+			"📈 Usage:   %s\n"+
+			"✅ Status:  %s",
+		used, avail, usageStr, status,
+	)
 }

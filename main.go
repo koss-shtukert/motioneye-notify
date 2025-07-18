@@ -29,8 +29,8 @@ func main() {
 		log.Fatal("Telegram bot error: ", err)
 	}
 
-	if cfg.RunDiskUsageCronJob {
-		cronJob := cron.NewCron(&logr, tgBot)
+	if cfg.CronRunDiskUsageJob {
+		cronJob := cron.NewCron(&logr, cfg, tgBot)
 		cronJob.Start()
 	}
 

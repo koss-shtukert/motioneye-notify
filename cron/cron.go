@@ -3,6 +3,7 @@ package cron
 import (
 	"bytes"
 	"fmt"
+	"github.com/koss-shtukert/motioneye-notify/config"
 	"os/exec"
 	"strings"
 
@@ -15,18 +16,20 @@ type Cron struct {
 	cron   *cron.Cron
 	tgBot  *bot.Bot
 	logger *zerolog.Logger
+	config *config.Config
 }
 
-func NewCron(l *zerolog.Logger, b *bot.Bot) *Cron {
+func NewCron(l *zerolog.Logger, cfg *config.Config, b *bot.Bot) *Cron {
 	logger := l.With().Str("type", "bot").Logger()
 
 	c := &Cron{
 		cron:   cron.New(),
 		tgBot:  b,
 		logger: &logger,
+		config: cfg,
 	}
 
-	if _, err := c.cron.AddFunc("@hourly", diskUsageJob(&logger, b)); err != nil {
+	if _, err := c.cron.AddFunc("@hourly", diskUsageJob(&logger, cfg, b)); err != nil {
 		logger.Err(err).Msg("Failed to schedule job")
 	}
 
@@ -38,11 +41,11 @@ func (c *Cron) Start() {
 	c.cron.Start()
 }
 
-func diskUsageJob(l *zerolog.Logger, b *bot.Bot) func() {
+func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 	return func() {
 		logger := l.With().Str("type", "diskUsageJob").Logger()
 
-		cmd := exec.Command("sh", "-c", "df -h /host")
+		cmd := exec.Command("sh", "-c", "df -h /host"+c.CronDiskUsageJobPath)
 		var out, stderr bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &stderr

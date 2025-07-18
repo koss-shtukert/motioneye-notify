@@ -77,7 +77,7 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 					return
 				}
 
-				msg := fmt.Sprintf("Disk Used: %s\nAvail: %s\nUse%%: %d%%", used, avail, percent)
+				msg := fmt.Sprintf("Disk\nUsed: %s\nAvail: %s\nUse%%: %d%%", used, avail, percent)
 				logger.Info().
 					Str("path", path).
 					Str("used", used).

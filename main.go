@@ -1,36 +1,42 @@
 package main
 
 import (
-	"github.com/koss-shtukert/motioneye-notify/pkg"
 	"log"
 
 	"github.com/koss-shtukert/motioneye-notify/api"
 	"github.com/koss-shtukert/motioneye-notify/bot"
 	"github.com/koss-shtukert/motioneye-notify/config"
+	"github.com/koss-shtukert/motioneye-notify/cron"
 	"github.com/koss-shtukert/motioneye-notify/logger"
+	"github.com/koss-shtukert/motioneye-notify/pkg"
 )
 
 func main() {
-	c, err := config.Load(".")
+	cfg, err := config.Load(".")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Config error: ", err)
 	}
 
-	l, err := logger.New(c.LogLevel)
+	logr, err := logger.New(cfg.LogLevel)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Logger error: ", err)
 	}
 
-	u := pkg.CreateUploader(&l)
+	uploader := pkg.CreateUploader(&logr)
 
-	b, err := bot.CreateBot(c.TgBotApiKey, c.TgBotChatId, &l, u)
+	tgBot, err := bot.CreateBot(cfg.TgBotApiKey, cfg.TgBotChatId, &logr, uploader)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Telegram bot error: ", err)
 	}
 
-	l.Info().Str("type", "core").Msg("Starting service")
+	if cfg.RunDiskUsageCronJob {
+		cronJob := cron.NewCron(&logr, tgBot)
+		cronJob.Start()
+	}
 
-	s := api.CreateServer(&l, c, b)
+	logr.Info().Str("type", "core").Msg("Starting service")
 
-	log.Fatal(s.Start(":" + c.ServerPort))
+	server := api.CreateServer(&logr, cfg, tgBot)
+
+	log.Fatal(server.Start(":" + cfg.ServerPort))
 }

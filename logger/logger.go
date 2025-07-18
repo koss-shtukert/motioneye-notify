@@ -8,21 +8,23 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 )
 
-func New(level string) (logger zerolog.Logger, err error) {
+func New(level string) (zerolog.Logger, error) {
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
-	loglevel, err := zerolog.ParseLevel(level)
-
+	logLevel, err := zerolog.ParseLevel(level)
 	if err != nil {
-		return
+		return zerolog.Logger{}, err
 	}
 
-	zerolog.SetGlobalLevel(loglevel)
+	zerolog.SetGlobalLevel(logLevel)
 
-	logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
+	logger := zerolog.New(os.Stdout).
+		With().
+		Timestamp().
+		Logger()
 
 	zerolog.DefaultContextLogger = &logger
 
-	return
+	return logger, nil
 }

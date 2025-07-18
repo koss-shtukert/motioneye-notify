@@ -30,7 +30,7 @@ func NewCron(l *zerolog.Logger, cfg *config.Config, b *bot.Bot) *Cron {
 		config: cfg,
 	}
 
-	if _, err := c.cron.AddFunc("0 * * * *", diskUsageJob(&logger, cfg, b)); err != nil {
+	if _, err := c.cron.AddFunc(cfg.CronDiskUsageJobInterval, diskUsageJob(&logger, cfg, b)); err != nil {
 		logger.Err(err).Msg("Failed to schedule job")
 	}
 

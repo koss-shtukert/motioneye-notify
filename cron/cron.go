@@ -10,7 +10,6 @@ import (
 	"github.com/koss-shtukert/motioneye-notify/config"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
-	"strconv"
 )
 
 type Cron struct {
@@ -47,8 +46,8 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 		logger := l.With().Str("type", "diskUsageJob").Logger()
 
 		path := "/host" + c.CronDiskUsageJobPath
-		cmd := exec.Command("sh", "-c", "df -h "+path)
 
+		cmd := exec.Command("sh", "-c", "df -h "+path)
 		var out, stderr bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &stderr
@@ -61,34 +60,36 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 		for _, line := range strings.Split(out.String(), "\n") {
 			if strings.HasSuffix(line, path) {
 				fields := strings.Fields(line)
-				if len(fields) < 5 {
-					logger.Warn().Str("line", line).Msg("Not enough fields to parse")
-					continue
-				}
+				if len(fields) >= 5 {
+					used := fields[2]
+					avail := fields[3]
+					usageStr := fields[4]
 
-				used := fields[2]
-				avail := fields[3]
-				usedPercent := fields[4]
+					percent := 0
+					if _, err := fmt.Sscanf(usageStr, "%d%%", &percent); err != nil {
+						l.Err(err).Str("raw", usageStr).Msg("Failed to parse usage percentage")
+						return
+					}
 
-				percentStr := strings.TrimSuffix(usedPercent, "%")
-				percent, err := strconv.Atoi(percentStr)
-				if err != nil {
-					logger.Warn().Str("value", usedPercent).Msg("Could not parse Use% value")
+					var msg string
+
+					msg += "💾 Disk Usage\n\n"
+					msg += "+--------+---------+--------+\n"
+					msg += "| Used   | Avail   | Use%%  |\n"
+					msg += "+--------+---------+--------+\n"
+					msg += fmt.Sprintf("| %-6s | %-7s | %-5s |\n", used, avail, usageStr)
+					msg += "+--------+---------+--------+"
+
+					if percent >= 90 {
+						msg = "🚨 *High Disk Usage Alert!*\n\n" + msg
+					}
+
+					b.SendMessage(msg)
 					return
 				}
-
-				msg := fmt.Sprintf("Disk\nUsed: %s\nAvail: %s\nUse%%: %d%%", used, avail, percent)
-				logger.Info().
-					Str("path", path).
-					Str("used", used).
-					Str("avail", avail).
-					Int("use_percent", percent).
-					Msg("Parsed disk usage")
-				b.SendMessage(msg)
-				return
 			}
 		}
 
-		logger.Warn().Msgf("Could not parse disk usage for path %s from df output", path)
+		logger.Warn().Msgf("Could not parse disk usage from df output on path %s", path)
 	}
 }

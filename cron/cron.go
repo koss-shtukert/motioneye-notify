@@ -56,7 +56,7 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 		}
 
 		for _, line := range strings.Split(out.String(), "\n") {
-			if strings.HasSuffix(line, "/host") {
+			if strings.HasSuffix(line, "/host"+c.CronDiskUsageJobPath) {
 				fields := strings.Fields(line)
 				if len(fields) >= 5 {
 					usage := fields[4]
@@ -68,6 +68,6 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 			}
 		}
 
-		logger.Warn().Msg("Could not parse /host usage from df output")
+		logger.Warn().Msgf("Could not parse /host%v usage from df output", c.CronDiskUsageJobPath)
 	}
 }

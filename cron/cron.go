@@ -70,7 +70,7 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 						l.Err(err).Str("raw", usageStr).Msg("Failed to parse usage percentage")
 					}
 
-					b.SendMessage(formatDiskUsageReadable(used, avail, usageStr, percent))
+					b.SendMessage(formatDiskUsage(used, avail, usageStr, percent))
 					return
 				}
 			}
@@ -80,7 +80,7 @@ func diskUsageJob(l *zerolog.Logger, c *config.Config, b *bot.Bot) func() {
 	}
 }
 
-func formatDiskUsageReadable(used, avail, usageStr string, percent int) string {
+func formatDiskUsage(used, avail, usageStr string, percent int) string {
 	status := "🟢 OK"
 	if percent >= 90 {
 		status = "🔴 CRITICAL"
@@ -88,12 +88,23 @@ func formatDiskUsageReadable(used, avail, usageStr string, percent int) string {
 		status = "🟡 Warning"
 	}
 
-	return fmt.Sprintf(
-		"💾 Disk Usage\n\n"+
-			"📊 Used:    %-8s\n"+
-			"📦 Avail:   %-8s\n"+
-			"📈 Usage:   %-8s\n"+
-			"✅ Status:  %-8s",
-		used, avail, usageStr, status,
-	)
+	labels := []string{"Used:", "Avail:", "Usage:", "Status:"}
+	values := []string{used, avail, usageStr, status}
+
+	maxLabelLen := 0
+	for _, label := range labels {
+		if len(label) > maxLabelLen {
+			maxLabelLen = len(label)
+		}
+	}
+
+	lines := make([]string, 0, len(labels))
+	emojis := []string{"📊", "📦", "📈", "✅"}
+
+	for i := range labels {
+		spacePadding := strings.Repeat(" ", maxLabelLen-len(labels[i])+2)
+		lines = append(lines, fmt.Sprintf("%s %s%s%s", emojis[i], labels[i], spacePadding, values[i]))
+	}
+
+	return fmt.Sprintf("💾 Disk Usage\n\n%s", strings.Join(lines, "\n"))
 }

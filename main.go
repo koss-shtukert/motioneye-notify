@@ -6,7 +6,6 @@ import (
 	"github.com/koss-shtukert/motioneye-notify/api"
 	"github.com/koss-shtukert/motioneye-notify/bot"
 	"github.com/koss-shtukert/motioneye-notify/config"
-	"github.com/koss-shtukert/motioneye-notify/cron"
 	"github.com/koss-shtukert/motioneye-notify/logger"
 	"github.com/koss-shtukert/motioneye-notify/pkg"
 )
@@ -27,11 +26,6 @@ func main() {
 	tgBot, err := bot.CreateBot(cfg.TgBotApiKey, cfg.TgBotChatId, &logr, uploader)
 	if err != nil {
 		log.Fatal("Telegram bot error: ", err)
-	}
-
-	if cfg.CronRunDiskUsageJob {
-		cronJob := cron.NewCron(&logr, cfg, tgBot)
-		cronJob.Start()
 	}
 
 	logr.Info().Str("type", "core").Msg("Starting service")

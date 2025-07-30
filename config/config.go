@@ -7,17 +7,14 @@ import (
 )
 
 type Config struct {
-	Environment              string `mapstructure:"APP_ENV"`
-	LogLevel                 string `mapstructure:"LOG_LEVEL"`
-	ServerHost               string `mapstructure:"SERVER_HOST"`
-	ServerPort               string `mapstructure:"SERVER_PORT"`
-	CronRunDiskUsageJob      bool   `mapstructure:"CRON_RUN_DISK_USAGE_JOB"`
-	CronDiskUsageJobPath     string `mapstructure:"CRON_DISK_USAGE_JOB_PATH"`
-	CronDiskUsageJobInterval string `mapstructure:"CRON_DISK_USAGE_JOB_INTERVAL"`
-	MotioneyeHost            string `mapstructure:"MOTIONEYE_HOST"`
-	MotioneyePort            string `mapstructure:"MOTIONEYE_PORT"`
-	TgBotApiKey              string `mapstructure:"TGBOT_API_KEY"`
-	TgBotChatId              string `mapstructure:"TGBOT_CHAT_ID"`
+	Environment   string `mapstructure:"APP_ENV"`
+	LogLevel      string `mapstructure:"LOG_LEVEL"`
+	ServerHost    string `mapstructure:"SERVER_HOST"`
+	ServerPort    string `mapstructure:"SERVER_PORT"`
+	MotioneyeHost string `mapstructure:"MOTIONEYE_HOST"`
+	MotioneyePort string `mapstructure:"MOTIONEYE_PORT"`
+	TgBotApiKey   string `mapstructure:"TGBOT_API_KEY"`
+	TgBotChatId   string `mapstructure:"TGBOT_CHAT_ID"`
 }
 
 func Load(path string) (*Config, error) {
@@ -26,10 +23,6 @@ func Load(path string) (*Config, error) {
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("CRON_RUN_DISK_USAGE_JOB", false)
-	viper.SetDefault("CRON_DISK_USAGE_JOB_PATH", "")
-	viper.SetDefault("CRON_DISK_USAGE_JOB_INTERVAL", "")
-
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
@@ -37,10 +30,6 @@ func Load(path string) (*Config, error) {
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
-	if cfg.CronDiskUsageJobPath == "" {
-		cfg.CronRunDiskUsageJob = false
 	}
 
 	required := map[string]string{
